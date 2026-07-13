@@ -345,7 +345,7 @@ export function MagicMirror() {
               >
                 <ScanFace className="h-10 w-10 text-brand" />
               </motion.div>
-              <h3 className="mt-5 text-2xl font-bold text-foreground">
+              <h3 className="font-display mt-5 text-3xl font-semibold text-foreground">
                 Your Magic Mirror
               </h3>
               <p className="mt-2 text-sm text-foreground/80">

@@ -62,7 +62,7 @@ export function Features() {
           <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand-soft px-3 py-1 text-xs font-medium text-brand-soft-foreground">
             <Sparkles className="h-3.5 w-3.5" /> What you get
           </span>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
             A styling studio in your pocket
           </h2>
           <p className="mt-3 text-muted-foreground">

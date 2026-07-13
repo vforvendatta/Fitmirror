@@ -30,7 +30,7 @@ export function SiteHeader() {
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-brand-foreground shadow-sm">
             <Sparkles className="h-5 w-5" />
           </span>
-          <span className="text-lg">
+          <span className="font-display text-lg font-semibold">
             Fit<span className="text-brand">Mirror</span>
           </span>
         </button>

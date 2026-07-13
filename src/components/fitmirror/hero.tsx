@@ -23,9 +23,9 @@ export function Hero() {
           <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand-soft px-3 py-1 text-xs font-medium text-brand-soft-foreground">
             <Sparkles className="h-3.5 w-3.5" /> Live Magic Mirror · Free to start
           </span>
-          <h1 className="mt-5 text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl md:text-6xl">
+          <h1 className="font-display mt-5 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
             Open the mirror. Hold up a dress.{' '}
-            <span className="text-brand">See it on you, live.</span>
+            <span className="text-brand italic">See it on you, live.</span>
           </h1>
           <p className="mt-5 max-w-md text-base text-muted-foreground sm:text-lg">
             No uploads, no forms. Just your camera — it recognizes you, recognizes

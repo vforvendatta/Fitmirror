@@ -186,3 +186,17 @@ Work Log:
 
 Stage Summary:
 Magic Mirror is live and is the default experience. Ice-cream pastel theme applied throughout. Verified end-to-end in agent-browser: open mirror → (no camera in headless) upload person → pick Emerald gown from Discover (person photo PRESERVED across the tab switch) → "Try it on ✨" → AI pipeline returns result + Style Report (fit 85 "Excellent", color 75 "Good"), usage 1/3. VLM confirms: try-on image renders at top, AI Style Report card with circular scores renders below, friendly pastel theme, no visual problems. /api/detect smart-identify verified. lint clean.
+
+---
+Task ID: 6
+Agent: main (Z.ai Code)
+Task: Apply the best typography for the ice-cream pastel fashion brand.
+
+Work Log:
+- Chose a boutique font pairing: Fraunces (soft optical-size-aware display serif) for headlines + Plus Jakarta Sans (friendly geometric sans) for body/UI. Swapped layout.tsx from Geist/Geist_Mono → Fraunces + Plus Jakarta Sans via next/font/google (CSS vars --font-display, --font-sans).
+- Wired globals.css: body uses Plus Jakarta Sans; added .font-display utility (Fraunces, optical sizing, ss01/ss02 features, -0.015em tracking).
+- Applied .font-display tastefully to: hero h1 (with italic accent on "See it on you, live."), section h2s (How It Works / Features / Pricing), "Your Magic Mirror" intro, pricing tier names (Free/Pro/Premium), and the FitMirror wordmark in header + footer.
+- Lint clean. Browser-verified: 56 font-faces loaded; computed families = Fraunces (display) + Plus Jakarta Sans (body). VLM confirmed: elegant serif headline, clean sans body, polished/boutique pairing, distinctive serif wordmark, no typography problems.
+
+Stage Summary:
+Typography upgraded. Fraunces + Plus Jakarta Sans now carry the friendly-boutique fashion identity end-to-end.

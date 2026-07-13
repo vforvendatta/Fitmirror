@@ -12,7 +12,7 @@ export function Footer() {
               <Sparkles className="h-5 w-5" />
             </span>
             <div>
-              <p className="font-semibold tracking-tight">
+              <p className="font-display font-semibold tracking-tight">
                 Fit<span className="text-brand">Mirror</span>
               </p>
               <p className="text-xs text-muted-foreground">

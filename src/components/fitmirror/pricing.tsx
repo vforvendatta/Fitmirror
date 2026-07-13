@@ -64,7 +64,7 @@ export function Pricing() {
           <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand-soft px-3 py-1 text-xs font-medium text-brand-soft-foreground">
             <Sparkles className="h-3.5 w-3.5" /> Simple pricing
           </span>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
             Start free. Upgrade when you love it.
           </h2>
           <p className="mt-3 text-muted-foreground">
@@ -88,7 +88,7 @@ export function Pricing() {
                   Most popular
                 </span>
               )}
-              <h3 className="text-lg font-semibold">{t.name}</h3>
+              <h3 className="font-display text-xl font-semibold">{t.name}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{t.tagline}</p>
               <div className="mt-4 flex items-baseline gap-1">
                 <span className="text-4xl font-bold tracking-tight">
