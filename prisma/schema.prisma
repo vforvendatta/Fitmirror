@@ -1,0 +1,71 @@
+// FitMirror — AI Virtual Try-On Studio
+// Prisma schema (SQLite)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Anonymous browser session (cookie + localStorage). No login friction.
+model Session {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  lastActive DateTime @default(now())
+
+  tryOns       TryOn[]
+  wardrobe     WardrobeItem[]
+  usageLogs    UsageLog[]
+}
+
+/// A single try-on generation run.
+model TryOn {
+  id              String   @id @default(cuid())
+  sessionId       String
+  session         Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  // Stored as URL paths under /uploads (files on disk)
+  personImageUrl  String
+  garmentImageUrl String
+  resultImageUrl  String?
+  garmentName     String?
+  // JSON-serialized StyleReport
+  report          String?
+  createdAt       DateTime @default(now())
+
+  wardrobeItems WardrobeItem[]
+
+  @@index([sessionId])
+}
+
+/// Saved look (from a TryOn the user liked).
+model WardrobeItem {
+  id         String   @id @default(cuid())
+  sessionId  String
+  session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tryOnId    String?
+  tryOn      TryOn?   @relation(fields: [tryOnId], references: [id], onDelete: SetNull)
+  name       String
+  notes      String?
+  // Snapshot of image URLs so wardrobe survives even if tryOn deleted
+  personImageUrl  String?
+  garmentImageUrl String?
+  resultImageUrl  String?
+  createdAt  DateTime @default(now())
+
+  @@index([sessionId])
+}
+
+/// Daily usage counter per session (for free-tier limiting).
+model UsageLog {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  date      String   // YYYY-MM-DD (UTC)
+  count     Int      @default(0)
+
+  @@unique([sessionId, date])
+  @@index([sessionId])
+}
