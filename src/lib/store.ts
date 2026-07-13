@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import type { DiscoverItem, TryOnResult } from '@/lib/types'
 
-export type TabKey = 'studio' | 'wardrobe' | 'history' | 'discover'
+export type TabKey = 'mirror' | 'studio' | 'wardrobe' | 'history' | 'discover'
 
 interface FitMirrorState {
   activeTab: TabKey
@@ -32,10 +32,20 @@ interface FitMirrorState {
   setResult: (v: TryOnResult | null) => void
   saved: boolean
   setSaved: (v: boolean) => void
+
+  // --- Magic Mirror step machine (persisted) ---
+  mirrorStep:
+    | 'intro'
+    | 'person'
+    | 'garment'
+    | 'ready'
+    | 'generating'
+    | 'result'
+  setMirrorStep: (v: FitMirrorState['mirrorStep']) => void
 }
 
 export const useFitMirror = create<FitMirrorState>((set) => ({
-  activeTab: 'studio',
+  activeTab: 'mirror',
   setActiveTab: (activeTab) => set({ activeTab }),
   pendingGarment: null,
   setPendingGarment: (pendingGarment) => set({ pendingGarment }),
@@ -54,4 +64,7 @@ export const useFitMirror = create<FitMirrorState>((set) => ({
   setResult: (result) => set({ result }),
   saved: false,
   setSaved: (saved) => set({ saved }),
+
+  mirrorStep: 'intro',
+  setMirrorStep: (mirrorStep) => set({ mirrorStep }),
 }))

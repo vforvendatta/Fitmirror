@@ -163,3 +163,26 @@ Work Log:
 
 Stage Summary:
 FULLY VERIFIED end-to-end. The app renders cleanly, the complete golden path (upload person → pick garment → AI generate → view result + report → save → wardrobe/history) works in the browser, the AI pipeline (VLM×2 + LLM + image gen) returns real reports, usage limiting works, and responsive/dark-mode/footer all behave correctly. Production-ready.
+
+---
+Task ID: 5
+Agent: main (Z.ai Code)
+Task: Redesign around a live "Magic Mirror" experience + ice-cream pastel theme (per user feedback: the upload flow felt like "just another form"; wanted camera-first auto-identify + friendly look).
+
+Work Log:
+- Rewrote globals.css to an ice-cream pastel palette: vanilla-cream background, warm-cocoa text, strawberry-pink brand, plus peach/mint/lavender/buttercream accent tokens (light + dark). Larger radius (1rem), soft .fm-shadow / .fm-shadow-lg utilities.
+- Added /api/detect route: lightweight VLM frame verifier (one call per captured frame, NOT per live frame) that returns {ok, message, description}. Powers the "it auto-identifies you / the outfit" feel. Smoke-tested: returns ok:true, "Got it — I can see your outfit!", description "a shiny teal satin evening gown on a mannequin".
+- Built src/components/fitmirror/magic-mirror.tsx — the new primary experience:
+  * Live full-surface camera (mirrored selfie, front camera).
+  * Friendly guided state machine: intro → person → garment → ready → generating → result.
+  * Auto 3-2-1 countdown snap, then VLM verify via /api/detect; on success advances, on fail shows friendly retry message.
+  * Framing brackets + step pill + step dots + verify feedback ("I can see you!" / "Hold it up and try again.").
+  * Generating overlay with spinner; result overlays the mirror surface.
+  * Result actions: download / share / new look / save to wardrobe + full ReportCard.
+  * No-camera fallback: step-aware upload tiles ("Add your photo" then "Add the outfit") with a link to Discover.
+- Lifted mirror state (personImg, garmentImg, garmentName, result, saved, mirrorStep) into the Zustand store so it survives tab switches. Added auto-restart-camera effect when returning to a camera step.
+- Updated Discover pick to switch to the Mirror tab (was Studio). Updated Hero copy ("Open the mirror. Hold up a dress. See it on you, live.") + CTAs. Updated HowItWorks steps for mirror-first flow. Header nav + "Try Free" → Mirror tab. Tabs now: Mirror (default) · Discover · Wardrobe · History · Upload (classic studio, kept for accessibility).
+- Fixed: stale local setter names after store refactor (Python bulk replace); duplicate store writes; unused eslint-disable.
+
+Stage Summary:
+Magic Mirror is live and is the default experience. Ice-cream pastel theme applied throughout. Verified end-to-end in agent-browser: open mirror → (no camera in headless) upload person → pick Emerald gown from Discover (person photo PRESERVED across the tab switch) → "Try it on ✨" → AI pipeline returns result + Style Report (fit 85 "Excellent", color 75 "Good"), usage 1/3. VLM confirms: try-on image renders at top, AI Style Report card with circular scores renders below, friendly pastel theme, no visual problems. /api/detect smart-identify verified. lint clean.

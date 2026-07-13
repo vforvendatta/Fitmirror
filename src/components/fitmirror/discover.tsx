@@ -21,8 +21,8 @@ export function Discover() {
 
   const pick = (g: DiscoverItem) => {
     setPendingGarment(g)
-    setActiveTab('studio')
-    toast.success(`Loaded "${g.name}" into the studio.`)
+    setActiveTab('mirror')
+    toast.success(`Loaded "${g.name}" into the mirror.`)
   }
 
   return (

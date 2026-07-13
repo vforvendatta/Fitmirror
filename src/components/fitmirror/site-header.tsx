@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { useFitMirror, type TabKey } from '@/lib/store'
 
 const NAV: { key: TabKey; label: string }[] = [
-  { key: 'studio', label: 'Studio' },
+  { key: 'mirror', label: 'Mirror' },
   { key: 'discover', label: 'Discover' },
   { key: 'wardrobe', label: 'Wardrobe' },
   { key: 'history', label: 'History' },
@@ -24,7 +24,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
         <button
-          onClick={() => setActiveTab('studio')}
+          onClick={() => setActiveTab('mirror')}
           className="flex items-center gap-2 font-semibold tracking-tight"
         >
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-brand-foreground shadow-sm">
@@ -75,7 +75,7 @@ export function SiteHeader() {
           <Button
             size="sm"
             className="bg-brand text-brand-foreground hover:bg-brand/90"
-            onClick={() => setActiveTab('studio')}
+            onClick={() => setActiveTab('mirror')}
           >
             Try Free
           </Button>

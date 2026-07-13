@@ -4,19 +4,19 @@ import { Camera, Shirt, Wand2, Download } from 'lucide-react'
 
 const STEPS = [
   {
-    icon: Shirt,
-    title: 'Add the garment',
-    body: 'Snap a photo of any dress in a store, or pick one from our Discover gallery. A product photo works too.',
+    icon: Camera,
+    title: 'Open the mirror',
+    body: 'Tap “Open the Mirror” and let your camera do the rest. No uploads, no forms — just stand in front of it.',
   },
   {
-    icon: Camera,
-    title: 'Add your photo',
-    body: 'Upload a full-body shot or capture one live with your camera. Good lighting & a clear pose work best.',
+    icon: Shirt,
+    title: 'Hold up any outfit',
+    body: 'The mirror recognizes you first, then asks you to hold up a dress. Pick one from Discover if you don’t have one handy.',
   },
   {
     icon: Wand2,
-    title: 'Generate the try-on',
-    body: 'Our AI analyzes your body type, skin tone & the garment — then renders a natural-looking preview in seconds.',
+    title: 'Watch the magic',
+    body: 'Our AI analyzes your body, skin tone & the garment — then renders a natural preview of you wearing it.',
   },
   {
     icon: Download,
