@@ -44,5 +44,8 @@ COPY --from=builder /app/node_modules/@img ./node_modules/@img
 RUN mkdir -p /app/db /app/public/uploads
 
 EXPOSE 3000
-# Push the schema then start the standalone server
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node server.js"]
+# Push the Prisma schema (only when BACKEND=prisma) then start the server.
+# When BACKEND=pocketbase (docker-compose default), the push is skipped and
+# the app talks to PocketBase instead.
+# Call prisma via its node entry point (no npx needed; works in node:20-slim).
+CMD ["sh", "-c", "if [ \"$BACKEND\" != \"pocketbase\" ]; then node node_modules/prisma/build/index.js db push --skip-generate; fi && node server.js"]
