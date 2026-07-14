@@ -349,3 +349,22 @@ Smoke-tested all endpoints against a live dev server with curl:
 
 ### Stage Summary
 Dodo Payments is wired end-to-end and live-tested. Flow: user clicks "Upgrade to Pro/Premium" → `POST /api/checkout` → Dodo hosted checkout → user pays → Dodo calls `POST /api/webhook/dodo` → FitMirror creates a `Payment` row + upgrades `Session.plan` → user is redirected back to `/?checkout=success` → frontend can poll `GET /api/checkout/status?paymentId=xxx` for confirmation. Idempotent on `providerPaymentId` so Dodo's retries are safe. Admins configure the merchant API key + webhook secret from the existing Admin → Settings tab (no UI changes needed).
+
+---
+Task ID: 8
+Agent: main (Z.ai Code)
+Task: Multiple image gen + API provider option + admin username/password + Dodo payments + PocketBase + Docker.
+
+Work Log:
+- PocketBase mini-service: downloaded v0.23.0 binary, created setup.mjs (creates admin + 6 collections via admin REST API mirroring Prisma schema: sessions/tryons/wardrobe_items/usage_logs/admin_settings/payments), Dockerfile for PB, superuser admin@fitmirror.local/fitmirror-admin-2024. NOTE: PB can't stay alive between bash calls in this sandbox, so shipped as a run-it-yourself service + Docker service.
+- Prisma→PocketBase sync bridge (scripts/sync-to-pocketbase.ts): mirrors all Prisma data into PB so user gets the PB admin UI (http://localhost:8090/_/) for "afterwards view and change". Idempotent.
+- Multiple image generation: ai-tryon.runTryOn now accepts variations (1-4), generates in parallel with pose/mood prompt tweaks, returns variations[]; tryon route accepts variations param + saves all result URLs; TryOnResult type updated; Studio UI has a 1/2/3/4 "Previews" selector + variation thumbnail picker with active checkmark.
+- Admin username + password: admin.ts exports getAdminUsername (default 'admin') + ADMIN_USERNAME_KEY; /api/admin/auth now requires BOTH username + password; admin-panel login shows two fields (username + password); Settings tab has "Admin credentials" section to change both.
+- API provider option: admin Settings tab already had provider.tryon/imagegen/llm toggles + model fields (from task 7); dodo.* keys now also configurable there; ai-tryon reads via admin settings infrastructure.
+- Dodo Payments (subagent 8-DODO): src/lib/dodo.ts (createCheckout/retrievePayment/verifyWebhook), /api/checkout (POST → checkout URL), /api/webhook/dodo (POST → creates Payment + upgrades Session.plan on success, idempotent), /api/checkout/status (GET). Payment model gained provider + providerPaymentId columns. Pricing CTAs now redirect to Dodo checkout (shows friendly "not configured" toast when no API key). All curl-tested.
+- Docker: Dockerfile (multi-stage, Next.js standalone, runs db:push on start), docker-compose.yml (app + pocketbase services with volumes + env wiring), mini-services/pocketbase/Dockerfile.
+- Cleanups: eslint ignores mini-services + scripts; gitignore pb_data + pocketbase binary + tool-results; untracked scripts/ so sync script ships.
+- Verified: admin login with admin/fitmirror2024 works; variations selector (1-4) renders in Studio; Dodo checkout returns 503 "not configured" gracefully; lint clean. Pushed commit 3a27aad to GitHub (auto-push via stored credential).
+
+Stage Summary:
+Major platform upgrade shipped. Multiple image variations, admin username+password auth, Dodo Payments (checkout+webhook+status), PocketBase backend service + sync bridge, Docker (app+PB compose). All on GitHub at vforvendatta/Fitmirror. Default admin: admin / fitmirror2024. PocketBase admin: admin@fitmirror.local / fitmirror-admin-2024.
