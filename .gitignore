@@ -52,3 +52,8 @@ prompt
 server.log
 # Skills directory
 /skills/
+# FitMirror — never commit live database or local env
+/db/*.db
+/db/*.db-journal
+/uploads/
+/scripts/
