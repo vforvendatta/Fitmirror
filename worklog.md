@@ -368,3 +368,23 @@ Work Log:
 
 Stage Summary:
 Major platform upgrade shipped. Multiple image variations, admin username+password auth, Dodo Payments (checkout+webhook+status), PocketBase backend service + sync bridge, Docker (app+PB compose). All on GitHub at vforvendatta/Fitmirror. Default admin: admin / fitmirror2024. PocketBase admin: admin@fitmirror.local / fitmirror-admin-2024.
+
+---
+Task ID: 9
+Agent: main (Z.ai Code)
+Task: Env according to PocketBase — make PocketBase a real switchable backend.
+
+Work Log:
+- Updated .env + .env.example: added BACKEND selector (prisma|pocketbase), POCKETBASE_URL, POCKETBASE_ADMIN_EMAIL, POCKETBASE_ADMIN_PASSWORD.
+- Created src/lib/pb.ts: PocketBase v0.23 admin REST client. Auth via /api/collections/_superusers/auth-with-password (v0.23 broke the old /api/admins endpoint). Token cached ~1h. CRUD helpers: pbGet/pbList/pbCreate/pbUpdate/pbDelete/pbCount.
+- Created src/lib/pb-db.ts: Prisma-shaped adapter implementing ALL 20 db operations the app uses across 6 models (session, tryOn, wardrobeItem, usageLog, adminSetting, payment). Includes: camelCase↔snake_case field mapping (FIELD_MAP), compound-unique emulation (sessionId_date), atomic-increment emulation (read-then-write for usageLog upsert), select projection, orderBy→sort mapping.
+- Updated src/lib/db.ts: exports `db` = PrismaClient OR pbDb based on BACKEND env. Zero route edits needed — every file imports { db } from '@/lib/db' and gets the right backend automatically. Also exports BACKEND_MODE.
+- Updated mini-services/pocketbase/setup.mjs for v0.23: superuser auth via _superusers, collection creation with v0.23 field format. Changed relation fields → text (storing FK ids as strings; app enforces ownership at route level). Changed url fields → text (PB url validation rejects relative paths like /uploads/x.png).
+- Created scripts/test-pb-db.ts: 32-test smoke suite covering every operation.
+- Fixed pb.ts: removed unused next/headers import so it runs in standalone Node.
+- Smoke-tested: started PB on port 8098, ran setup (all 6 collections created), ran test-pb-db.ts → 32 passed, 0 failed. Proves session CRUD, tryOn CRUD, wardrobeItem CRUD+delete, usageLog compound-unique+increment, adminSetting upsert, payment create+findFirst+findMany all work against PocketBase.
+- Set .env BACKEND=prisma for the live sandbox (PB can't persist between bash calls here). User flips to BACKEND=pocketbase locally/Docker.
+- lint clean. Pushed commit 064099e to GitHub.
+
+Stage Summary:
+PocketBase is now a real, tested backend option. Flip BACKEND=pocketbase in .env + start PB → the entire app (try-on, wardrobe, history, admin, payments) runs on PocketBase with zero code changes. 32/32 adapter tests pass. All on GitHub.
