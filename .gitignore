@@ -68,3 +68,6 @@ mini-services/pocketbase/pocketbase
 mini-services/pocketbase/pb_data/
 # tool artifacts
 tool-results/
+
+# PocketBase auto-generated migrations (use setup.mjs instead)
+mini-services/pocketbase/pb_migrations/

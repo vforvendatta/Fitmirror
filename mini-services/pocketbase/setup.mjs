@@ -1,24 +1,23 @@
-// FitMirror PocketBase setup — creates the admin account + collections via the
-// PocketBase admin REST API. Idempotent.
+// FitMirror PocketBase setup (v0.23+) — creates the superuser + collections.
+// Idempotent.
 //
 // Usage:
-//   1. Start PocketBase first:  bun run dev   (in this folder)
-//   2. In another terminal:     node setup.mjs
-//
-// Env: PB_URL (default http://127.0.0.1:8090), PB_ADMIN_EMAIL, PB_ADMIN_PASSWORD
+//   1. Start PocketBase:  ./pocketbase serve  (in this folder)
+//   2. Create superuser:  ./pocketbase superuser upsert admin@fitmirror.local 'fitmirror-admin-2024'
+//   3. Run:               node setup.mjs
 
 const PB_URL = process.env.PB_URL || 'http://127.0.0.1:8090'
 const ADMIN_EMAIL = process.env.PB_ADMIN_EMAIL || 'admin@fitmirror.local'
 const ADMIN_PASSWORD = process.env.PB_ADMIN_PASSWORD || 'fitmirror-admin-2024'
 
-// Collections mirror the Prisma schema (sessions, tryons, wardrobe_items,
-// usage_logs, admin_settings, payments).
+// PocketBase v0.23 collection field definitions.
+// Each field: { name, type, required?, options?: {...}, ... }
 const COLLECTIONS = [
   {
     name: 'sessions',
     type: 'base',
     fields: [
-      { name: 'plan', type: 'text', options: { max: 20 } },
+      { name: 'plan', type: 'text', required: false, options: { max: 20 } },
       { name: 'created_at', type: 'autodate', onCreate: true, onUpdate: false },
       { name: 'last_active', type: 'autodate', onCreate: true, onUpdate: true },
     ],
@@ -27,13 +26,12 @@ const COLLECTIONS = [
     name: 'tryons',
     type: 'base',
     fields: [
-      { name: 'session', type: 'relation', required: true, options: { collection: 'sessions', cascadeDelete: true, max: 1 } },
-      { name: 'person_image_url', type: 'url', required: true },
-      { name: 'garment_image_url', type: 'url', required: true },
-      { name: 'result_image_url', type: 'url' },
-      { name: 'garment_name', type: 'text' },
-      { name: 'report', type: 'json' },
-      { name: 'variations', type: 'json' },
+      { name: 'session', type: 'text', required: true },
+      { name: 'person_image_url', type: 'text', required: true },
+      { name: 'garment_image_url', type: 'text', required: true },
+      { name: 'result_image_url', type: 'text', required: false },
+      { name: 'garment_name', type: 'text', required: false },
+      { name: 'report', type: 'json', required: false },
       { name: 'created_at', type: 'autodate', onCreate: true, onUpdate: false },
     ],
   },
@@ -41,13 +39,13 @@ const COLLECTIONS = [
     name: 'wardrobe_items',
     type: 'base',
     fields: [
-      { name: 'session', type: 'relation', required: true, options: { collection: 'sessions', cascadeDelete: true, max: 1 } },
-      { name: 'tryon', type: 'relation', options: { collection: 'tryons', cascadeDelete: false, max: 1 } },
+      { name: 'session', type: 'text', required: true },
+      { name: 'tryon', type: 'text', required: false },
       { name: 'name', type: 'text', required: true },
-      { name: 'notes', type: 'text' },
-      { name: 'person_image_url', type: 'url' },
-      { name: 'garment_image_url', type: 'url' },
-      { name: 'result_image_url', type: 'url' },
+      { name: 'notes', type: 'text', required: false },
+      { name: 'person_image_url', type: 'text', required: false },
+      { name: 'garment_image_url', type: 'text', required: false },
+      { name: 'result_image_url', type: 'text', required: false },
       { name: 'created_at', type: 'autodate', onCreate: true, onUpdate: false },
     ],
   },
@@ -55,9 +53,9 @@ const COLLECTIONS = [
     name: 'usage_logs',
     type: 'base',
     fields: [
-      { name: 'session', type: 'relation', required: true, options: { collection: 'sessions', cascadeDelete: true, max: 1 } },
+      { name: 'session', type: 'text', required: true },
       { name: 'date', type: 'text', required: true, options: { max: 10 } },
-      { name: 'count', type: 'number' },
+      { name: 'count', type: 'number', required: false },
     ],
   },
   {
@@ -65,20 +63,21 @@ const COLLECTIONS = [
     type: 'base',
     fields: [
       { name: 'key', type: 'text', required: true, options: { max: 100 } },
-      { name: 'value', type: 'text' },
+      { name: 'value', type: 'text', required: false },
+      { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
     ],
   },
   {
     name: 'payments',
     type: 'base',
     fields: [
-      { name: 'session', type: 'relation', required: true, options: { collection: 'sessions', cascadeDelete: true, max: 1 } },
+      { name: 'session', type: 'text', required: true },
       { name: 'amount_cents', type: 'number', required: true },
-      { name: 'currency', type: 'text', options: { max: 10 } },
-      { name: 'plan', type: 'text', options: { max: 20 } },
-      { name: 'status', type: 'text', options: { max: 20 } },
-      { name: 'provider', type: 'text', options: { max: 20 } },
-      { name: 'provider_payment_id', type: 'text' },
+      { name: 'currency', type: 'text', required: false, options: { max: 10 } },
+      { name: 'plan', type: 'text', required: false, options: { max: 20 } },
+      { name: 'status', type: 'text', required: false, options: { max: 20 } },
+      { name: 'provider', type: 'text', required: false, options: { max: 20 } },
+      { name: 'provider_payment_id', type: 'text', required: false },
       { name: 'created_at', type: 'autodate', onCreate: true, onUpdate: false },
     ],
   },
@@ -87,32 +86,22 @@ const COLLECTIONS = [
 async function main() {
   console.log('FitMirror PocketBase setup →', PB_URL)
 
-  // 1. Create admin account (idempotent — ignore if exists)
-  try {
-    const r = await fetch(`${PB_URL}/api/admins`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD, passwordConfirm: ADMIN_PASSWORD }),
-    })
-    if (r.ok) console.log('✓ admin account created:', ADMIN_EMAIL)
-    else if (r.status === 400) console.log('• admin account already exists')
-    else console.log('  admin create →', r.status, await r.text())
-  } catch (e) {
-    console.error('admin create failed:', e.message)
-  }
-
-  // 2. Auth as admin
-  const authR = await fetch(`${PB_URL}/api/admins/auth-with-password`, {
+  // Auth as superuser (v0.23: _superusers collection)
+  const authR = await fetch(`${PB_URL}/api/collections/_superusers/auth-with-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
+    body: JSON.stringify({ identity: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
   })
-  if (!authR.ok) { console.error('admin auth failed:', authR.status, await authR.text()); process.exit(1) }
+  if (!authR.ok) {
+    console.error('superuser auth failed:', authR.status, await authR.text())
+    console.error('Create the superuser first: ./pocketbase superuser upsert ' + ADMIN_EMAIL + ' ' + ADMIN_PASSWORD)
+    process.exit(1)
+  }
   const { token } = await authR.json()
-  console.log('✓ authenticated as admin')
+  console.log('✓ authenticated as superuser')
   const headers = { 'Content-Type': 'application/json', Authorization: token }
 
-  // 3. Create collections (idempotent — skip if exists)
+  // Create collections (idempotent — skip if exists)
   for (const col of COLLECTIONS) {
     try {
       const r = await fetch(`${PB_URL}/api/collections`, {
@@ -128,10 +117,8 @@ async function main() {
     }
   }
 
-  // 4. Make all collections publicly readable/writable enough for the app
-  //    (the Next.js backend talks to PB as admin; end users never touch PB directly).
   console.log('\nDone. Admin UI:', PB_URL + '/_/')
-  console.log('Admin login:', ADMIN_EMAIL, '/', ADMIN_PASSWORD)
+  console.log('Superuser:', ADMIN_EMAIL, '/', ADMIN_PASSWORD)
 }
 
 main().catch((e) => { console.error(e); process.exit(1) })
