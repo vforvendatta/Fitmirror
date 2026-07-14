@@ -1,0 +1,10 @@
+{
+  "name": "fitmirror-pocketbase",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "./pocketbase serve --http=0.0.0.0:8090",
+    "start": "./pocketbase serve --http=0.0.0.0:8090",
+    "setup": "node setup.mjs"
+  }
+}

@@ -139,12 +139,79 @@ public/discover/              # 8 curated garment photos
 
 ---
 
+## 🐳 Docker (self-host with one command)
+
+A full `docker-compose.yml` ships the app + PocketBase together:
+
+```bash
+docker compose up --build
+```
+
+- **App:** http://localhost:3000
+- **PocketBase admin UI:** http://localhost:8090/_/
+
+First-time PocketBase setup:
+```bash
+docker compose exec pocketbase /pocketbase/pocketbase superuser upsert admin@fitmirror.local 'fitmirror-admin-2024'
+docker compose run --rm app node mini-services/pocketbase/setup.mjs
+```
+
+---
+
+## 🗄️ PocketBase (view & edit data afterwards)
+
+FitMirror ships with a PocketBase mini-service (`mini-services/pocketbase/`)
+that mirrors the Prisma schema into collections you can browse and edit from
+the PocketBase admin UI — perfect for "afterwards view and change".
+
+Sync Prisma → PocketBase any time:
+```bash
+POCKETBASE_URL=http://localhost:8090 \
+POCKETBASE_ADMIN_EMAIL=admin@fitmirror.local \
+POCKETBASE_ADMIN_PASSWORD=fitmirror-admin-2024 \
+bun run scripts/sync-to-pocketbase.ts
+```
+
+---
+
+## 💳 Dodo Payments
+
+Checkout + webhook wired (`/api/checkout`, `/api/webhook/dodo`). To enable:
+
+1. Get your API key + webhook secret from https://dodopayments.com
+2. Open **Admin → API & Settings** and add:
+   - `dodo.api_key` = `sk_...`
+   - `dodo.webhook_secret` = `whsec_...`
+   - `dodo.enabled` = `true`
+3. Set the webhook URL in Dodo to `https://yourdomain.com/api/webhook/dodo`
+
+The Pricing section's **Go Pro** / **Go Premium** buttons redirect to Dodo
+checkout. On success, the webhook upgrades the user's plan automatically.
+
+---
+
+## 🎨 Multiple image generation
+
+The try-on pipeline can generate **1–4 variations** in parallel (different
+poses/moods). Select the count in the Studio's "Previews: 1 2 3 4" selector
+before generating. Result thumbnails let you pick your favorite.
+
+---
+
+## 🔐 Admin credentials
+
+Default: **username** `admin` / **password** `fitmirror2024`
+
+Change both from **Admin → API & Settings → Admin credentials**.
+
+---
+
 ## 🔒 Notes
 
 - Try-on previews are **AI-rendered approximations**. Always verify fit &
   fabric in person before purchasing.
 - The SQLite DB and `.env` are gitignored — not committed.
-- Default admin password should be changed before any real deployment.
+- Default admin credentials should be changed before any real deployment.
 
 ---
 

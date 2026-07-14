@@ -60,6 +60,8 @@ export function Studio() {
   // Transient local state
   const [camFor, setCamFor] = React.useState<Slot | null>(null)
   const [loading, setLoading] = React.useState(false)
+  const [variationCount, setVariationCount] = React.useState(1)
+  const [activeVariation, setActiveVariation] = React.useState(0)
   const [saveName, setSaveName] = React.useState('')
   const [saving, setSaving] = React.useState(false)
 
@@ -124,6 +126,7 @@ export function Studio() {
           personImage: personImg,
           garmentImage: garmentImg,
           garmentName: garmentName || undefined,
+          variations: variationCount,
         }),
       })
       const data = await res.json()
@@ -266,9 +269,28 @@ export function Studio() {
           <UsageMeter />
         </div>
 
+        {/* Variations selector */}
+        <div className="mt-4 flex items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">Previews:</span>
+          {[1, 2, 3, 4].map((n) => (
+            <button
+              key={n}
+              onClick={() => setVariationCount(n)}
+              disabled={loading}
+              data-active={variationCount === n}
+              className="h-8 w-8 rounded-lg border text-xs font-semibold transition-colors disabled:opacity-40 data-[active=true]:border-brand data-[active=true]:bg-brand data-[active=true]:text-brand-foreground"
+            >
+              {n}
+            </button>
+          ))}
+          <span className="text-xs text-muted-foreground">
+            {variationCount > 1 ? `(${variationCount} poses, parallel)` : '(1 pose)'}
+          </span>
+        </div>
+
         <Button
           size="lg"
-          className="mt-4 w-full bg-brand text-brand-foreground hover:bg-brand/90"
+          className="mt-3 w-full bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={loading || !personImg || !garmentImg}
           onClick={generate}
         >
@@ -320,7 +342,7 @@ export function Studio() {
           <div className="mt-3 flex flex-1 flex-col gap-4">
             <div className="relative overflow-hidden rounded-xl border border-border/60 bg-muted/30">
               <img
-                src={result.resultImageUrl}
+                src={(result.variations?.[activeVariation] || result.resultImageUrl)}
                 alt="AI try-on result"
                 className="h-full w-full object-contain"
               />
@@ -328,6 +350,25 @@ export function Studio() {
                 AI Preview
               </Badge>
             </div>
+
+            {/* Variation thumbnails */}
+            {result.variations && result.variations.length > 1 && (
+              <div className="flex gap-2">
+                {result.variations.map((v, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveVariation(i)}
+                    data-active={activeVariation === i}
+                    className="relative h-20 w-14 overflow-hidden rounded-lg border-2 transition-all data-[active=true]:border-brand data-[active=false]:border-transparent data-[active=false]:opacity-60"
+                  >
+                    <img src={v} alt={`variation ${i + 1}`} className="h-full w-full object-cover" />
+                    {activeVariation === i && (
+                      <span className="absolute bottom-0.5 right-0.5 grid h-4 w-4 place-items-center rounded-full bg-brand text-[8px] text-brand-foreground">✓</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-2">
               <Button

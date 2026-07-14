@@ -32,16 +32,21 @@ model AdminSetting {
 
 /// Recorded payment for a plan upgrade (mock processor — always succeeds in this sandbox).
 model Payment {
-  id          String   @id @default(cuid())
-  sessionId   String
-  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  amountCents Int
-  currency    String   @default("USD")
-  plan        String
-  status      String   @default("succeeded")
-  createdAt   DateTime @default(now())
+  id                 String   @id @default(cuid())
+  sessionId          String
+  session            Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  amountCents        Int
+  currency           String   @default("USD")
+  plan               String
+  status             String   @default("succeeded")
+  // Payment provider info (added for Dodo Payments integration).
+  // Nullable so existing manual/admin payments keep working unchanged.
+  provider           String?  // "dodo" | "manual" | ...
+  providerPaymentId  String?  // provider's payment_id (e.g. Dodo's payment_id)
+  createdAt          DateTime @default(now())
 
   @@index([sessionId])
+  @@index([providerPaymentId])
 }
 
 /// A single try-on generation run.

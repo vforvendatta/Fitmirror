@@ -1,12 +1,14 @@
 import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 
-/** Default admin password used before any custom password is stored. */
+/** Default admin credentials used before any custom values are stored. */
+export const DEFAULT_ADMIN_USERNAME = 'admin';
 export const DEFAULT_ADMIN_PASSWORD = 'fitmirror2024';
 
 export const ADMIN_COOKIE = 'fm_admin';
 const ADMIN_TOKEN_KEY = 'admin_token';
 const ADMIN_PASSWORD_KEY = 'admin_password';
+const ADMIN_USERNAME_KEY = 'admin_username';
 const SEVEN_DAYS_SECONDS = 60 * 60 * 24 * 7;
 
 /** Reads a single AdminSetting value by key. Returns null if not present. */
@@ -24,10 +26,13 @@ export async function setAdminSetting(key: string, value: string): Promise<void>
   });
 }
 
-/**
- * Returns the currently configured admin password.
- * Falls back to DEFAULT_ADMIN_PASSWORD when none is stored.
- */
+/** Returns the currently configured admin username (default 'admin'). */
+export async function getAdminUsername(): Promise<string> {
+  const stored = await getAdminSetting(ADMIN_USERNAME_KEY);
+  return stored ?? DEFAULT_ADMIN_USERNAME;
+}
+
+/** Returns the currently configured admin password. */
 export async function getAdminPassword(): Promise<string> {
   const stored = await getAdminSetting(ADMIN_PASSWORD_KEY);
   return stored ?? DEFAULT_ADMIN_PASSWORD;
@@ -55,5 +60,6 @@ export async function adminSession(): Promise<{ isAdmin: boolean }> {
 export {
   ADMIN_TOKEN_KEY,
   ADMIN_PASSWORD_KEY,
+  ADMIN_USERNAME_KEY,
   SEVEN_DAYS_SECONDS,
 };

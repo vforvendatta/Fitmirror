@@ -9,11 +9,13 @@ import type { TryOnResult } from '@/lib/types';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { personImage, garmentImage, garmentName } = body as {
+    const { personImage, garmentImage, garmentName, variations } = body as {
       personImage?: string;
       garmentImage?: string;
       garmentName?: string;
+      variations?: number;
     };
+    const variationCount = Math.min(4, Math.max(1, Number(variations) || 1));
 
     if (
       !personImage ||
@@ -61,7 +63,7 @@ export async function POST(request: Request) {
     // Run the AI try-on pipeline
     let pipelineResult;
     try {
-      pipelineResult = await runTryOn({ personBuffer, garmentBuffer });
+      pipelineResult = await runTryOn({ personBuffer, garmentBuffer, variations: variationCount });
     } catch (aiErr) {
       console.error('[/api/tryon] AI pipeline failed:', aiErr);
       return NextResponse.json(
@@ -70,10 +72,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const { report, resultImageBase64 } = pipelineResult;
+    const { report, resultImageBase64, variations: variationBase64s } = pipelineResult;
 
-    // Save the generated result image to disk
+    // Save the generated result image(s) to disk
     const resultImageUrl = await saveBase64Image(resultImageBase64, 'png');
+    const variationUrls: string[] = [];
+    for (const b64 of variationBase64s) {
+      variationUrls.push(await saveBase64Image(b64, 'png'));
+    }
 
     // Persist the TryOn row
     const tryOn = await db.tryOn.create({
@@ -94,6 +100,7 @@ export async function POST(request: Request) {
       tryOnId: tryOn.id,
       resultImageUrl,
       report,
+      variations: variationUrls,
     };
     return NextResponse.json(payload, { status: 200 });
   } catch (err) {

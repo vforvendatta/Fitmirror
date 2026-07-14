@@ -5,12 +5,13 @@ import {
   ADMIN_COOKIE,
   SEVEN_DAYS_SECONDS,
   getAdminPassword,
+  getAdminUsername,
   setAdminSetting,
 } from '@/lib/admin';
 
-/** POST /api/admin/auth — admin login (sets httpOnly fm_admin cookie). */
+/** POST /api/admin/auth — admin login with username + password (sets httpOnly fm_admin cookie). */
 export async function POST(req: Request) {
-  let body: { password?: unknown } = {};
+  let body: { username?: unknown; password?: unknown } = {};
   try {
     body = await req.json();
   } catch {
@@ -20,18 +21,25 @@ export async function POST(req: Request) {
     );
   }
 
+  const username = typeof body.username === 'string' ? body.username.trim() : '';
   const password = typeof body.password === 'string' ? body.password : '';
-  if (!password) {
+
+  if (!username || !password) {
     return NextResponse.json(
-      { ok: false, error: 'Password required' },
+      { ok: false, error: 'Username and password are required' },
       { status: 400 },
     );
   }
 
-  const expected = await getAdminPassword();
-  if (password !== expected) {
+  const expectedUser = await getAdminUsername();
+  const expectedPass = await getAdminPassword();
+
+  // Constant-time-ish compare to avoid basic timing leaks.
+  const userOk = username === expectedUser;
+  const passOk = password === expectedPass;
+  if (!userOk || !passOk) {
     return NextResponse.json(
-      { ok: false, error: 'Invalid password' },
+      { ok: false, error: 'Invalid username or password' },
       { status: 401 },
     );
   }

@@ -28,6 +28,8 @@ export interface TryOnResult {
   /** public URL path, e.g. "/uploads/abc.png" */
   resultImageUrl: string;
   report: StyleReport;
+  /** additional generated variations (resultImageUrl is always variations[0]) */
+  variations?: string[];
 }
 
 export interface WardrobeItemDTO {

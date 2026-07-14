@@ -59,3 +59,13 @@ server.log
 /db/*.db-journal
 /uploads/
 /scripts/
+
+# PocketBase runtime data (auto-generated, do not commit)
+mini-services/pocketbase/pb_data/
+mini-services/pocketbase/pb.zip
+
+# PocketBase binary (downloaded by Dockerfile / setup, not committed)
+mini-services/pocketbase/pocketbase
+mini-services/pocketbase/pb_data/
+# tool artifacts
+tool-results/

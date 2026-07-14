@@ -107,6 +107,7 @@ function short(id: string) {
 export function AdminPanel() {
   const qc = useQueryClient()
   const [isAdmin, setIsAdmin] = React.useState<boolean | null>(null)
+  const [un, setUn] = React.useState('')
   const [pw, setPw] = React.useState('')
   const [loggingIn, setLoggingIn] = React.useState(false)
   const [tab, setTab] = React.useState<AdminTab>('dashboard')
@@ -130,16 +131,17 @@ export function AdminPanel() {
       const r = await fetch('/api/admin/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pw }),
+        body: JSON.stringify({ username: un, password: pw }),
       })
       const d = await r.json()
       if (r.ok && d.ok) {
         setIsAdmin(true)
+        setUn('')
         setPw('')
         sessionQ.refetch()
         toast.success('Welcome to the admin console.')
       } else {
-        toast.error(d.error || 'Invalid password.')
+        toast.error(d.error || 'Invalid credentials.')
       }
     } catch {
       toast.error('Network error.')
@@ -174,11 +176,20 @@ export function AdminPanel() {
             Admin console
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Enter the admin password to manage APIs, users, payments &amp;
-            analytics.
+            Sign in with your admin username &amp; password to manage APIs,
+            users, payments &amp; analytics.
           </p>
         </div>
         <div className="mt-6 space-y-3">
+          <Label htmlFor="adminun">Admin username</Label>
+          <Input
+            id="adminun"
+            type="text"
+            value={un}
+            onChange={(e) => setUn(e.target.value)}
+            placeholder="admin"
+            autoFocus
+          />
           <Label htmlFor="adminpw">Admin password</Label>
           <Input
             id="adminpw"
@@ -187,11 +198,10 @@ export function AdminPanel() {
             onChange={(e) => setPw(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && login()}
             placeholder="••••••••"
-            autoFocus
           />
           <Button
             onClick={login}
-            disabled={loggingIn || !pw}
+            disabled={loggingIn || !pw || !un}
             className="w-full bg-brand text-brand-foreground hover:bg-brand/90"
           >
             {loggingIn ? (
@@ -202,7 +212,8 @@ export function AdminPanel() {
             Unlock
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Default password: <code className="font-mono">fitmirror2024</code>
+            Default: <code className="font-mono">admin</code> /{' '}
+            <code className="font-mono">fitmirror2024</code>
           </p>
         </div>
       </Card>
@@ -854,32 +865,37 @@ function SettingsTab() {
       </Card>
 
       <Card className="p-5 fm-shadow">
-        <h3 className="font-display text-base font-semibold">Admin password</h3>
+        <h3 className="font-display text-base font-semibold">Admin credentials</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Change the admin login password (stored securely in the DB).
+          Change the admin login username &amp; password (stored in the DB).
         </p>
-        <ChangePassword />
+        <ChangeCredentials />
       </Card>
     </div>
   )
 }
 
-function ChangePassword() {
+function ChangeCredentials() {
+  const [un, setUn] = React.useState('')
   const [v, setV] = React.useState('')
   const [saving, setSaving] = React.useState(false)
   const qc = useQueryClient()
   const save = async () => {
-    if (!v) return
+    const updates: Record<string, string> = {}
+    if (un.trim()) updates.admin_username = un.trim()
+    if (v) updates.admin_password = v
+    if (Object.keys(updates).length === 0) return
     setSaving(true)
     try {
       await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings: { admin_password: v } }),
+        body: JSON.stringify({ settings: updates }),
       })
       qc.invalidateQueries({ queryKey: ['admin-settings'] })
+      setUn('')
       setV('')
-      toast.success('Admin password updated.')
+      toast.success('Admin credentials updated.')
     } catch {
       toast.error('Could not update.')
     } finally {
@@ -887,19 +903,30 @@ function ChangePassword() {
     }
   }
   return (
-    <div className="mt-3 flex flex-wrap items-end gap-2">
-      <div className="min-w-[220px] flex-1">
-        <Label className="text-xs">New password</Label>
+    <div className="mt-3 space-y-3">
+      <div>
+        <Label className="text-xs">New username</Label>
         <Input
-          type="password"
-          value={v}
-          onChange={(e) => setV(e.target.value)}
-          placeholder="••••••••"
+          type="text"
+          value={un}
+          onChange={(e) => setUn(e.target.value)}
+          placeholder="admin"
         />
       </div>
-      <Button onClick={save} disabled={saving || !v} variant="outline">
-        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Update'}
-      </Button>
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="min-w-[220px] flex-1">
+          <Label className="text-xs">New password</Label>
+          <Input
+            type="password"
+            value={v}
+            onChange={(e) => setV(e.target.value)}
+            placeholder="••••••••"
+          />
+        </div>
+        <Button onClick={save} disabled={saving || (!un && !v)} variant="outline">
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Update'}
+        </Button>
+      </div>
     </div>
   )
 }

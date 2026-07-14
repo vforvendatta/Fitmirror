@@ -1,6 +1,8 @@
 'use client'
 
-import { Check, Sparkles } from 'lucide-react'
+import * as React from 'react'
+import { toast } from 'sonner'
+import { Check, Sparkles, Loader2, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useFitMirror } from '@/lib/store'
@@ -57,6 +59,34 @@ const TIERS = [
 
 export function Pricing() {
   const { setActiveTab } = useFitMirror()
+  const [checkingOut, setCheckingOut] = React.useState<string | null>(null)
+
+  const checkout = async (plan: 'pro' | 'premium') => {
+    setCheckingOut(plan)
+    try {
+      const r = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      })
+      const d = await r.json()
+      if (r.ok && d.checkoutUrl) {
+        window.location.href = d.checkoutUrl
+      } else {
+        toast.error(d.error || 'Payments not configured yet. Ask an admin to add a Dodo API key.')
+      }
+    } catch {
+      toast.error('Network error.')
+    } finally {
+      setCheckingOut(null)
+    }
+  }
+
+  const onCta = (tier: { name: string; highlight?: boolean }) => {
+    if (tier.name === 'Pro') return checkout('pro')
+    if (tier.name === 'Premium') return checkout('premium')
+    setActiveTab('mirror')
+  }
   return (
     <section id="pricing" className="border-b border-border/60 bg-muted/30">
       <div className="mx-auto max-w-6xl px-4 py-16 md:py-20">
@@ -111,10 +141,19 @@ export function Pricing() {
               <Button
                 className="mt-6 w-full"
                 variant={t.highlight ? 'default' : 'outline'}
-                onClick={() => setActiveTab('studio')}
+                onClick={() => onCta(t)}
+                disabled={checkingOut === t.name.toLowerCase()}
                 data-highlight={t.highlight}
               >
-                {t.highlight ? (
+                {checkingOut === t.name.toLowerCase() ? (
+                  <>
+                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> Redirecting…
+                  </>
+                ) : t.name !== 'Free' ? (
+                  <>
+                    <CreditCard className="mr-1.5 h-4 w-4" /> {t.cta}
+                  </>
+                ) : t.highlight ? (
                   <span className="bg-brand text-brand-foreground">{t.cta}</span>
                 ) : (
                   t.cta

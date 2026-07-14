@@ -323,8 +323,10 @@ async function generateTryOnImage(
 export async function runTryOn(opts: {
   personBuffer: Buffer;
   garmentBuffer: Buffer;
-}): Promise<{ report: StyleReport; resultImageBase64: string }> {
+  variations?: number; // 1-4, default 1
+}): Promise<{ report: StyleReport; resultImageBase64: string; variations: string[] }> {
   const zai = await ZAI.create();
+  const n = Math.min(4, Math.max(1, opts.variations ?? 1));
 
   const personDataUrl = toDataUrl(opts.personBuffer, 'image/png');
   const garmentDataUrl = toDataUrl(opts.garmentBuffer, 'image/png');
@@ -338,9 +340,25 @@ export async function runTryOn(opts: {
   // Reason about style with the text LLM
   const report = await reasonStyleReport(zai, person, garment);
 
-  // Generate the photorealistic try-on image
+  // Generate the photorealistic try-on image(s).
+  // For variations, we tweak the prompt slightly per variation (pose / mood)
+  // and generate in parallel for speed.
   const prompt = buildImagePrompt(person, garment);
-  const resultImageBase64 = await generateTryOnImage(zai, prompt);
+  const moodVariations = [
+    '',
+    ', candid relaxed pose, soft smile, hands in pockets',
+    ', confident editorial pose, slight turn, looking away',
+    ', playful walking pose, motion in fabric, natural laugh',
+  ];
+  const prompts = Array.from({ length: n }, (_, i) => prompt + (moodVariations[i] || ''));
 
-  return { report, resultImageBase64 };
+  const results = await Promise.all(
+    prompts.map((p) => generateTryOnImage(zai, p).catch(() => null)),
+  );
+  const valid = results.filter((r): r is string => !!r);
+  if (valid.length === 0) {
+    throw new Error('Image generation failed for all variations');
+  }
+
+  return { report, resultImageBase64: valid[0], variations: valid };
 }
