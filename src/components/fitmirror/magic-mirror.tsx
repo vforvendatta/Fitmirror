@@ -21,6 +21,8 @@ import {
   Share2,
   RotateCcw,
   ScanFace,
+  Shuffle,
+  History as HistoryIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -173,10 +175,10 @@ export function MagicMirror() {
     }
   }
 
-  // Auto-snap a frame after a countdown, verify with VLM, advance or retry.
+  // Auto-snap a frame after a short countdown, verify with VLM, advance or retry.
   const snapStep = async (which: 'person' | 'garment') => {
     if (cam !== 'live') return
-    await runCountdown(3)
+    await runCountdown(2)
     const img = captureFrame()
     if (!img) {
       toast.error('Could not capture. Try again.')
@@ -201,6 +203,57 @@ export function MagicMirror() {
   const beginMirror = async () => {
     setStep('person')
     await startCam()
+  }
+
+  // Quick Try: if we already have a person photo, grab a random Discover garment
+  // and jump straight to "ready" — one tap to a new look.
+  const quickTry = async () => {
+    if (!personImg) {
+      toast('Add your photo first — open the mirror once.', { icon: '📸' })
+      setStep('person')
+      await startCam()
+      return
+    }
+    try {
+      const r = await fetch('/api/discover')
+      const items: { id: string; imageUrl: string; name: string; category: string }[] =
+        await r.json()
+      if (items.length === 0) {
+        toast.error('No garments available right now.')
+        return
+      }
+      const pick = items[Math.floor(Math.random() * items.length)]
+      setGarmentImg(pick.imageUrl)
+      setGarmentName(pick.name)
+      setResult(null)
+      setSaved(false)
+      setStep('ready')
+      toast.success(`Quick-try: ${pick.name}`)
+    } catch {
+      toast.error('Could not load a garment. Try again.')
+    }
+  }
+
+  // Keep the person, swap the outfit — instant re-try.
+  const tryAnotherOutfit = () => {
+    setGarmentImg(null)
+    setGarmentName('')
+    setResult(null)
+    setSaved(false)
+    setStep('garment')
+    if (cam !== 'live') startCam()
+  }
+
+  // Reuse the last captured person photo (if any) from this session.
+  const useLastPhoto = () => {
+    if (personImg) {
+      setStep('garment')
+      if (cam !== 'live') startCam()
+      toast.success('Using your last photo ✨')
+    } else {
+      setStep('person')
+      startCam()
+    }
   }
 
   const generate = async () => {
@@ -359,6 +412,22 @@ export function MagicMirror() {
               >
                 <Sparkles className="mr-2 h-5 w-5" /> Open the mirror
               </Button>
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                <button
+                  onClick={quickTry}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-brand/30 bg-background/80 px-3 py-1.5 text-xs font-medium text-brand-soft-foreground hover:bg-background"
+                >
+                  <Shuffle className="h-3.5 w-3.5" /> Quick try a random look
+                </button>
+                {personImg && (
+                  <button
+                    onClick={useLastPhoto}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/80 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-background"
+                  >
+                    <HistoryIcon className="h-3.5 w-3.5" /> Use my last photo
+                  </button>
+                )}
+              </div>
               <button
                 onClick={() => useFitMirror.getState().setActiveTab('studio')}
                 className="mt-3 block w-full text-xs text-foreground/70 underline-offset-2 hover:underline"
@@ -608,14 +677,24 @@ export function MagicMirror() {
         {step === 'result' && result && (
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                onClick={tryAnotherOutfit}
+                className="bg-brand text-brand-foreground hover:bg-brand/90"
+              >
+                <Shuffle className="mr-1.5 h-4 w-4" /> Try another outfit
+              </Button>
+              <Button size="sm" onClick={quickTry} variant="outline">
+                <Sparkles className="mr-1.5 h-4 w-4" /> Surprise me
+              </Button>
               <Button size="sm" onClick={download} variant="outline">
-                <Download className="mr-1.5 h-4 w-4" /> Download
+                <Download className="mr-1.5 h-4 w-4" /> Save
               </Button>
               <Button size="sm" onClick={share} variant="outline">
                 <Share2 className="mr-1.5 h-4 w-4" /> Share
               </Button>
               <Button size="sm" onClick={resetAll} variant="outline">
-                <RotateCcw className="mr-1.5 h-4 w-4" /> New look
+                <RotateCcw className="mr-1.5 h-4 w-4" /> Start over
               </Button>
             </div>
             <div className="flex items-center gap-2">

@@ -12,6 +12,7 @@ const NAV: { key: TabKey; label: string }[] = [
   { key: 'discover', label: 'Discover' },
   { key: 'wardrobe', label: 'Wardrobe' },
   { key: 'history', label: 'History' },
+  { key: 'admin', label: 'Admin' },
 ]
 
 export function SiteHeader() {

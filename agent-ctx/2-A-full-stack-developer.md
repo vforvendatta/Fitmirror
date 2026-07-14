@@ -48,3 +48,5 @@ Built the entire FitMirror backend: 4 lib modules + 5 API route handlers. API co
 - All image URLs returned are relative paths under `/uploads/` (or `/discover/` for the static gallery) — safe to use directly in `<img src>`.
 - `POST /api/wardrobe` requires a real `tryOnId` from a prior successful `/api/tryon` call.
 - Cookie `fm_session` is httpOnly so it can't be read client-side — that's intentional; client just makes requests and the cookie travels automatically.
+
+(Update from Task 2-ADMIN agent: this prior worklog was read; the Admin backend was built on top of it without modifying any of the original Task 2-A files except `src/lib/usage.ts` (made plan-aware) and `src/lib/db.ts` (only briefly, then restored to original).)

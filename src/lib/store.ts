@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import type { DiscoverItem, TryOnResult } from '@/lib/types'
 
-export type TabKey = 'mirror' | 'studio' | 'wardrobe' | 'history' | 'discover'
+export type TabKey = 'mirror' | 'studio' | 'wardrobe' | 'history' | 'discover' | 'admin'
 
 interface FitMirrorState {
   activeTab: TabKey

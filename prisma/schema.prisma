@@ -15,10 +15,33 @@ model Session {
   id         String   @id @default(cuid())
   createdAt  DateTime @default(now())
   lastActive DateTime @default(now())
+  plan       String   @default("free") // "free" | "pro" | "premium"
 
   tryOns       TryOn[]
   wardrobe     WardrobeItem[]
   usageLogs    UsageLog[]
+  payments     Payment[]
+}
+
+/// Key-value store for admin-configurable settings (admin password, provider toggles, etc.).
+model AdminSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+/// Recorded payment for a plan upgrade (mock processor — always succeeds in this sandbox).
+model Payment {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  amountCents Int
+  currency    String   @default("USD")
+  plan        String
+  status      String   @default("succeeded")
+  createdAt   DateTime @default(now())
+
+  @@index([sessionId])
 }
 
 /// A single try-on generation run.

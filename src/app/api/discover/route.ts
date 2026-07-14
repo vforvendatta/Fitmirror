@@ -38,6 +38,18 @@ const DISCOVER: DiscoverItem[] = [
     name: 'Linen Shirt & Trousers Set',
     category: 'Smart',
   },
+  {
+    id: 'd7',
+    imageUrl: '/discover/dress-7.png',
+    name: 'Burgundy Velvet Wrap Dress',
+    category: 'Evening',
+  },
+  {
+    id: 'd8',
+    imageUrl: '/discover/dress-8.png',
+    name: 'Lavender Chiffon Midi',
+    category: 'Casual',
+  },
 ];
 
 export async function GET() {

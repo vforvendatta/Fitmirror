@@ -8,10 +8,12 @@ import {
   History as HistoryIcon,
   Sparkles,
   Upload,
+  Shield,
 } from 'lucide-react'
 import { QueryProvider } from '@/components/query-provider'
 import { SiteHeader } from '@/components/fitmirror/site-header'
 import { Hero } from '@/components/fitmirror/hero'
+import { WhyFitMirror } from '@/components/fitmirror/why-fitmirror'
 import { HowItWorks } from '@/components/fitmirror/how-it-works'
 import { Features } from '@/components/fitmirror/features'
 import { Pricing } from '@/components/fitmirror/pricing'
@@ -21,6 +23,7 @@ import { Studio } from '@/components/fitmirror/studio'
 import { Discover } from '@/components/fitmirror/discover'
 import { Wardrobe } from '@/components/fitmirror/wardrobe'
 import { HistoryPanel } from '@/components/fitmirror/history'
+import { AdminPanel } from '@/components/fitmirror/admin-panel'
 import { useFitMirror, type TabKey } from '@/lib/store'
 
 const TABS: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -29,6 +32,7 @@ const TABS: { key: TabKey; label: string; icon: React.ComponentType<{ className?
   { key: 'wardrobe', label: 'Wardrobe', icon: Heart },
   { key: 'history', label: 'History', icon: HistoryIcon },
   { key: 'studio', label: 'Upload', icon: Upload },
+  { key: 'admin', label: 'Admin', icon: Shield },
 ]
 
 function AppShell() {
@@ -36,13 +40,13 @@ function AppShell() {
   return (
     <section className="border-b border-border/60 bg-background">
       <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
-        <div className="mx-auto mb-6 flex max-w-xl items-center gap-1 rounded-2xl border border-border/60 bg-card p-1 fm-shadow">
+        <div className="mx-auto mb-6 flex max-w-2xl items-center gap-1 overflow-x-auto rounded-2xl border border-border/60 bg-card p-1 fm-scroll fm-shadow">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key)}
               data-active={activeTab === t.key}
-              className="relative flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[active=true]:text-brand-soft-foreground"
+              className="relative flex shrink-0 items justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[active=true]:text-brand-soft-foreground"
             >
               {activeTab === t.key && (
                 <motion.span
@@ -70,6 +74,7 @@ function AppShell() {
             {activeTab === 'discover' && <Discover />}
             {activeTab === 'wardrobe' && <Wardrobe />}
             {activeTab === 'history' && <HistoryPanel />}
+            {activeTab === 'admin' && <AdminPanel />}
           </motion.div>
         </AnimatePresence>
 
@@ -90,6 +95,7 @@ export default function Home() {
         <main className="flex-1">
           <Hero />
           <AppShell />
+          <WhyFitMirror />
           <HowItWorks />
           <Features />
           <Pricing />
