@@ -4,8 +4,15 @@
 FROM node:20-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json* bun.lock* ./
-# Use npm ci for reproducible installs; fall back to npm install if no lockfile
-RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+# Resilient npm install: more retries + longer timeouts + a retry loop,
+# so a transient network drop (common on Windows + Docker Desktop) doesn't
+# kill the whole build.
+RUN npm config set fetch-retries 5 \
+    && npm config set fetch-retry-mintimeout 20000 \
+    && npm config set fetch-retry-maxtimeout 120000 \
+    && npm config set fetch-timeout 600000 \
+    && npm config set network-timeout 600000 \
+    && (npm ci --legacy-peer-deps || npm install --legacy-peer-deps)
 
 FROM node:20-slim AS builder
 WORKDIR /app
