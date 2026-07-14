@@ -58,7 +58,6 @@ server.log
 /db/*.db
 /db/*.db-journal
 /uploads/
-/scripts/
 
 # PocketBase runtime data (auto-generated, do not commit)
 mini-services/pocketbase/pb_data/
