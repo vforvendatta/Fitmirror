@@ -11,7 +11,6 @@ RUN npm config set fetch-retries 5 \
     && npm config set fetch-retry-mintimeout 20000 \
     && npm config set fetch-retry-maxtimeout 120000 \
     && npm config set fetch-timeout 600000 \
-    && npm config set network-timeout 600000 \
     && (npm ci --legacy-peer-deps || npm install --legacy-peer-deps)
 
 FROM node:20-slim AS builder
