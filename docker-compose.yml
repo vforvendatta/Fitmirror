@@ -8,12 +8,11 @@
 #
 # Then:
 #   - App:          http://localhost:3000
-#   - PocketBase:   http://localhost:8090/_/  (admin login in .env)
+#   - PocketBase:   http://localhost:8090/_/  (admin login below)
 #
 # First-time PocketBase setup (run once after `up`):
 #   docker compose exec pocketbase /pocketbase/pocketbase superuser upsert admin@fitmirror.local 'fitmirror-admin-2024'
-#   docker compose run --rm app node mini-services/pocketbase/setup.mjs
-# (or just use the PocketBase admin UI to create collections manually)
+#   docker compose exec app node mini-services/pocketbase/setup.mjs
 
 services:
   app:
@@ -23,10 +22,11 @@ services:
     ports:
       - "3000:3000"
     environment:
+      - BACKEND=pocketbase
       - DATABASE_URL=file:/app/db/custom.db
       - NODE_ENV=production
       - PORT=3000
-      # PocketBase (optional — app works without it; sync script uses this)
+      # PocketBase
       - POCKETBASE_URL=http://pocketbase:8090
       - POCKETBASE_ADMIN_EMAIL=${PB_ADMIN_EMAIL:-admin@fitmirror.local}
       - POCKETBASE_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD:-fitmirror-admin-2024}
@@ -41,11 +41,9 @@ services:
     restart: unless-stopped
 
   pocketbase:
-    image: pocketbase/pocketbase:latest
-    # Alternatively, build from the local binary:
-    # build:
-    #   context: ./mini-services/pocketbase
-    #   dockerfile: Dockerfile
+    build:
+      context: ./mini-services/pocketbase
+      dockerfile: Dockerfile
     ports:
       - "8090:8090"
     volumes:
