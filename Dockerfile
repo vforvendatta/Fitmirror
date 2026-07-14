@@ -1,24 +1,23 @@
-# ── Next.js app (FitMirror) ─────────────────────────────────────
-# Uses npm (not bun) inside Docker for reliable tarball downloads.
-# Runtime is plain `node server.js` (Next.js standalone output).
-FROM node:20-slim AS deps
+# ── Next.js app (FitMirror) — bun-based build ──────────────────
+# Uses the official oven/bun:1-debian image (bun pre-installed, debian base
+# so prisma/sharp native deps work). A bash retry loop handles transient
+# network drops (ConnectionRefused) common on Windows + Docker Desktop.
+FROM oven/bun:1-debian AS deps
 WORKDIR /app
-COPY package.json package-lock.json* bun.lock* ./
-# Resilient npm install: more retries + longer timeouts + a retry loop,
-# so a transient network drop (common on Windows + Docker Desktop) doesn't
-# kill the whole build.
-RUN npm config set fetch-retries 5 \
-    && npm config set fetch-retry-mintimeout 20000 \
-    && npm config set fetch-retry-maxtimeout 120000 \
-    && npm config set fetch-timeout 600000 \
-    && (npm ci --legacy-peer-deps || npm install --legacy-peer-deps)
+COPY package.json bun.lock* ./
+# Retry loop: bun install can hit ConnectionRefused on flaky networks.
+RUN for i in 1 2 3 4 5; do \
+      bun install --frozen-lockfile && break; \
+      echo "bun install attempt $i failed, retrying in 15s…"; \
+      sleep 15; \
+    done
 
-FROM node:20-slim AS builder
+FROM oven/bun:1-debian AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Generate Prisma client + build the standalone Next.js output
-RUN npx prisma generate && npm run build
+RUN bun run db:generate && bun run build
 
 FROM node:20-slim AS runner
 WORKDIR /app
@@ -36,13 +35,12 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-# Also copy the prisma client + sharp (needed at runtime for image processing)
+# prisma client + sharp (needed at runtime)
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/node_modules/sharp ./node_modules/sharp
 COPY --from=builder /app/node_modules/@img ./node_modules/@img
 
-# Ensure the db + uploads dirs exist
 RUN mkdir -p /app/db /app/public/uploads
 
 EXPOSE 3000
