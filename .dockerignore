@@ -1,0 +1,24 @@
+# Docker build context exclusions — speeds up builds + avoids stale copies
+node_modules
+.next
+.git
+.gitignore
+*.log
+dev.log
+server.log
+.env
+.env.local
+db/*.db
+db/*.db-journal
+public/uploads
+mini-services/pocketbase/pb_data
+mini-services/pocketbase/pocketbase
+mini-services/pocketbase/pb_migrations
+agent-ctx
+tool-results
+scripts
+README.md
+worklog.md
+Dockerfile
+docker-compose.yml
+.DS_Store
